@@ -1,9 +1,9 @@
 import csv
-
 class MeuCsv:
     def __init__(self, caminho):
         self.caminho = caminho
     
+
     def converterCSV( self ):
         caminhoCSV = self.caminho
         cabecalho = list()
@@ -31,3 +31,4 @@ class MeuCsv:
 
         # Retornando dados formatados
         return cabecalho, documento
+
