@@ -2,36 +2,24 @@ from Aluno import Aluno
 class Curso:
     def __init__( self, codigo ):
         self.codigo = codigo
-        self.alunos = list()
+        self.disciplinas = list()
         self.crMedio = 0
     
 
     def pegarCodigo( self ):
         return self.codigo
-
-
-    def adicionarAluno( self, aluno ):
-        self.alunos.append( aluno )
     
 
-    def pegarTodosAlunos( self ):
-        return self.alunos
+    def adicionarDisciplina( self, disciplina ):
+        self.disciplinas.append( disciplina )
     
 
-    def possuiAluno( self, matricula_aluno ):
-        
-        # Rodar a lista de Alunos procurando um aluno com a mesma matricula
-        for umAluno in self.alunos:
-            
-            if umAluno.pegarMatricula() == matricula_aluno:
-                
-                return True
-        
-        return False
-    
+    def pegarTodasDisciplinas( self ):
+        return self.disciplinas
+
 
     def pegarCRMedio( self ):
-        return self.cr
+        return self.crMedio
     
 
     def calculaCRMedio( self ):
@@ -39,14 +27,18 @@ class Curso:
         crMedio = 0
         quantidadeAlunos = 0
 
-        for umAluno in self.alunos:
+        for umaDisciplina in self.disciplinas:
 
-            historico = umAluno.pegarHistorico()
+            alunos = umaDisciplina.pegarTodosAlunos()
+
+            for umAluno in alunos:
+
+                historico = umAluno.pegarHistorico()
             
-            # Pegando o CR de cada um dos Alunos
-            crMedio += historico.pegarCR()
+                # Pegando o CR de cada um dos Alunos
+                crMedio += historico.pegarCR()
 
-            quantidadeAlunos += 1
+                quantidadeAlunos += 1
         
         # Dividindo a soma dos CR's dos Alunos pela Quantidade de Alunos
         crMedio = crMedio / quantidadeAlunos

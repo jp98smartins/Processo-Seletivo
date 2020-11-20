@@ -31,9 +31,9 @@ class Historico:
             cr += (nota * cargaHoraria)
             cargaHorariaTotal += cargaHoraria
             
-            # Dividindo a multiplicacao das notas por carga horária pela carga horária total
-            cr = cr / cargaHorariaTotal
+        # Dividindo a multiplicacao das notas por carga horária pela carga horária total
+        cr = cr / cargaHorariaTotal
 
-            self.cr = cr
+        self.cr = cr
 
             

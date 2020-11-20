@@ -3,10 +3,12 @@ from Registro import RegistroHistorico
 from Historico import Historico
 from Aluno import Aluno
 from Curso import Curso
+from Disciplina import Disciplina
 from time import sleep
 
 # Métodos para criação dos cursos da Faculdade
 todosCursos = []
+todasDisciplinas = []
 todosAlunos = []
 
 def verificarExistenciaCurso( codigo ):
@@ -21,7 +23,19 @@ def verificarExistenciaCurso( codigo ):
     return False
 
 
-def criarCursos( documento ):
+def verificarExistenciaDisciplina( codigo ):
+    
+    # Rodar a lista de cursos procurando um curso com o mesmo código
+    for umaDisciplina in todasDisciplinas:
+
+        if (umaDisciplina.pegarCodigo() == codigo):
+
+            return True
+    
+    return False
+
+
+def criarCursosDisciplinas( documento ):
 
     # Cabeçalho
     # 0 => MATRICULA | 1 => COD_DISCIPLINA | 2 => COD_CURSO
@@ -30,45 +44,97 @@ def criarCursos( documento ):
     for linha in documento:
 
         # Pegar Código do Curso
+        cod_disciplina = linha[1]
         cod_curso = linha[2]
 
         # Verificar pré existência do curso
         cursoExiste = verificarExistenciaCurso( cod_curso )
 
         # Se o curso não existir adicioná-lo
-        if not cursoExiste:
+        if cursoExiste:
+            
+            # Verificar pré existência da disciplina
+            disciplinaExiste = verificarExistenciaDisciplina( cod_disciplina )
+
+            if not disciplinaExiste:
+
+                # Instânciar uma nova Disciplina
+                disciplina = Disciplina( cod_disciplina )
+
+                # Adicionar a nova disciplina na lista de disciplinas
+                todasDisciplinas.append( disciplina )
+
+                for umCurso in todosCursos:
+
+                    if umCurso.pegarCodigo() == cod_curso:
+
+                        # Adicionar a disiciplina no curso
+                        umCurso.adicionarDisciplina( disciplina )
+
+        else:
+
             # Instânciar um novo curso
             curso = Curso(cod_curso)
+
+            # Instânciar uma nova Disciplina
+            disciplina = Disciplina( cod_disciplina )
+
+            # Adicionar a disiciplina no curso
+            curso.adicionarDisciplina( disciplina )
+
+            # Adicionar a nova disciplina na lista de disciplinas
+            todasDisciplinas.append( disciplina )
 
             # Adicionar o novo curso na lista de cursos
             todosCursos.append(curso)
 
 
-def verificarExistenciaAlunoNoCurso( cod_curso, matricula ):
-    
-    # Rodar a lista de cursos procurando um curso com o mesmo código
+def pegarCurso( cod_curso ):
+
     for umCurso in todosCursos:
 
         if umCurso.pegarCodigo() == cod_curso:
 
-            if umCurso.possuiAluno( matricula ):
+            return umCurso
 
-                return True
+
+def pegarDisciplina( cod_disciplina ):
+
+    for umaDisciplina in todasDisciplinas:
+
+        if umaDisciplina.pegarCodigo() == cod_disciplina:
+
+            return umaDisciplina            
+
+
+def verificarExistenciaAlunoNaDisciplina( disciplina, aluno ):
+    
+    alunos = disciplina.pegarTodosAlunos()
+
+    for umAluno in alunos:
+
+        if umAluno.pegarMatricula() == aluno.pegarMatricula():
+
+            return True
     
     return False
 
 
-def adicionarAlunoNoCurso( aluno, cursosAluno ):
+def adicionarAlunoNaDisciplina( aluno, cursosAluno, disciplinasAluno ):
 
     for codigoCurso in cursosAluno:
 
-        if not verificarExistenciaAlunoNoCurso( codigoCurso, aluno.pegarMatricula() ):
-            
-            for umCurso in todosCursos:
+        curso = pegarCurso( codigoCurso )
 
-                if umCurso.pegarCodigo() == codigoCurso:
+        for umaDisciplina in curso.pegarTodasDisciplinas():
 
-                    umCurso.adicionarAluno( aluno )
+            for disciplinaAluno in disciplinasAluno:
+
+                if umaDisciplina.pegarCodigo() == disciplinaAluno:
+
+                    if not verificarExistenciaAlunoNaDisciplina( umaDisciplina, aluno ):
+                
+                        umaDisciplina.adicionarAluno( aluno )
 
 
 def criarAlunoComHistorico( documento ):
@@ -80,6 +146,7 @@ def criarAlunoComHistorico( documento ):
     # Como o documento está ordenado pelo número da matrícula do aluno
     matriculaAluno = 0
     historicoAluno = Historico()
+    disciplinasAluno = []
     cursosAluno = []
     contadorLinhas = 0
     
@@ -99,26 +166,28 @@ def criarAlunoComHistorico( documento ):
             matriculaAluno = matricula
 
             # Criar novo Registro
-            registroHistorico = RegistroHistorico( cod_disciplina, carga_horaria, nota, ano_semestre )
+            registroHistorico = RegistroHistorico( carga_horaria, nota, ano_semestre )
 
             # Adicionar ao Histórico
             historicoAluno.adicionarRegistroHistorico( registroHistorico )
 
-            # Salvar Curso que o Aluno estuda na Lista
+            # Salvar Curso e Disciplinas que o Aluno estuda nas Listas
             cursosAluno.append( cod_curso )
+            disciplinasAluno.append( cod_disciplina )
 
             contadorLinhas += 1
             
         elif matriculaAluno == matricula:
 
             # Instânciar novo Registro Histórico
-            registroHistorico = RegistroHistorico( cod_disciplina, carga_horaria, nota, ano_semestre )
+            registroHistorico = RegistroHistorico( carga_horaria, nota, ano_semestre )
 
             # Adicionar o Registro ao Histórico
             historicoAluno.adicionarRegistroHistorico( registroHistorico )
 
-            # Salvar Curso que o Aluno estuda na Lista
+            # Salvar Curso e Disciplinas que o Aluno estuda nas Listas
             cursosAluno.append( cod_curso )
+            disciplinasAluno.append( cod_disciplina )
 
             contadorLinhas += 1
         
@@ -129,12 +198,12 @@ def criarAlunoComHistorico( documento ):
             historicoAluno.calculaCR()
 
             # Instânciar Novo Aluno
-            aluno = Aluno(matriculaAluno, historicoAluno)
+            aluno = Aluno( matriculaAluno, historicoAluno )
 
             todosAlunos.append( aluno )
 
             # Adicionar Aluno nos cursos em que participa
-            adicionarAlunoNoCurso( aluno, cursosAluno )
+            adicionarAlunoNaDisciplina( aluno, cursosAluno, disciplinasAluno )
 
             # ====== Próximo Aluno ========
             # Adicionar o nº da matricula do próximo aluno
@@ -145,13 +214,14 @@ def criarAlunoComHistorico( documento ):
             historicoAluno = Historico()
 
             # Criar novo Registro
-            registroHistorico = RegistroHistorico( cod_disciplina, carga_horaria, nota, ano_semestre )
+            registroHistorico = RegistroHistorico( carga_horaria, nota, ano_semestre )
 
             # Adicionar ao Histórico
             historicoAluno.adicionarRegistroHistorico( registroHistorico )
 
-            # Resetar Lista de Cursos que o Aluno participa
+            # Salvar Curso e Disciplinas que o Aluno estuda nas Listas
             cursosAluno = [cod_curso]
+            disciplinasAluno = [cod_disciplina]
 
             contadorLinhas += 1
 
@@ -160,19 +230,19 @@ def criarAlunoComHistorico( documento ):
             historicoAluno.calculaCR()
 
             # Instânciar Último Aluno
-            aluno = Aluno(matriculaAluno, historicoAluno)  
+            aluno = Aluno( matriculaAluno, historicoAluno )  
 
             todosAlunos.append( aluno )
 
             # Adicionar Aluno nos cursos em que participa
-            adicionarAlunoNoCurso( aluno, cursosAluno )
+            adicionarAlunoNaDisciplina( aluno, cursosAluno, disciplinasAluno )
 
 
 print("=+=+=+=+=+=+=+=+            Desfio 3            =+=+=+=+=+=+=+=+")
 print("=+=+=+=+=+=+=+=+        Inicializando CSV       =+=+=+=+=+=+=+=+")
 
 # Instânciando um novo arquivo .csv
-csv = MeuCsv("C:/Processo Seletivo STI/Processo Seletivo/teste.csv")
+csv = MeuCsv("notas.csv")
 
 print("=+=+=+=+=+=+=+=+        Lendo Arquivo CSV       =+=+=+=+=+=+=+=+")
 
@@ -182,7 +252,7 @@ cabecalho, documento = csv.converterCSV()
 print("=+=+=+=+=+=+=+=+ Carregando os Dados no Programa =+=+=+=+=+=+=+=+")
 
 # Criando os cursos
-criarCursos( documento )
+criarCursosDisciplinas( documento )
 
 # Criando os Alunos e seus Respectivos Históricos
 criarAlunoComHistorico( documento )
@@ -193,6 +263,13 @@ for umAluno in todosAlunos:
 
     historico = umAluno.pegarHistorico()
     
-    print(f"${umAluno.pegarMatricula()}  -  ${historico.pegarCR()}")
+    print(f"Aluno: {umAluno.pegarMatricula()}  -  CR: {historico.pegarCR():.2f}")
 
 print("=+=+=+=+=+=+=+=+      CR Médio dos Cursos      =+=+=+=+=+=+=+=+")
+
+for umCurso in todosCursos:
+    
+    umCurso.calculaCRMedio()
+
+    print(f"Curso: {umCurso.pegarCodigo()}  -  CR Médio: {umCurso.pegarCRMedio():.2f}")
+
