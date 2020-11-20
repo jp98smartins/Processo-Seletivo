@@ -1,5 +1,3 @@
-from Registro import RegistroHistorico
-from Historico import Historico
 class Aluno:
     def __init__(self, matricula, historico):
         self.matricula = matricula

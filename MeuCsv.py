@@ -29,6 +29,6 @@ class MeuCsv:
                     # Adicionando linha no documento
                     documento.append(umaLinha)
 
-        # Retornando dados formatados
+        # Retornando dados formatados (Cabeçalho e Dados do Documento)
         return cabecalho, documento
 
